@@ -1,5 +1,7 @@
 # note-drift
 
+[![tests](https://github.com/kishoren18-hue/note-drift/actions/workflows/ci.yml/badge.svg)](https://github.com/kishoren18-hue/note-drift/actions/workflows/ci.yml) [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 **Catch the facts that change when a clinical note gets summarized.**
 
 AI scribes and summarizers are being rolled into clinics to write handoffs, discharge summaries and visit notes. The failure that matters is rarely a clumsy sentence. It is a dose that turns 20 mg into 200 mg, a "denies chest pain" that becomes "chest pain", a right ear that becomes a left ear, or an allergy that silently disappears.
