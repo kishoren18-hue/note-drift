@@ -1,0 +1,11 @@
+PEDIATRIC CLINIC NOTE (synthetic patient, not a real person)
+
+Patient: 4-year-old with 2 days of fever and right ear pain. Mother reports Tmax 39.1 C at home. Denies vomiting or diarrhea. No rash. Mild cough.
+Allergies: amoxicillin (hives)
+Medications: cetirizine 5 mg once daily.
+
+Vitals: T 38.6 C, HR 128, RR 24, SpO2 98%, weight 17 kg.
+Exam: Right tympanic membrane erythematous and bulging. Left tympanic membrane normal. Lungs clear, no wheezing.
+
+Assessment: Acute otitis media, right ear. Fever. No evidence of pneumonia.
+Plan: Because of the amoxicillin allergy, start cefdinir 120 mg twice daily for 10 days. Ibuprofen 170 mg every 6 hours as needed for fever or pain. Continue cetirizine 5 mg once daily. Return if fever persists beyond 48 hours.

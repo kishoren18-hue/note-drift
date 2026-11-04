@@ -1,0 +1,43 @@
+<!doctype html><html><head><meta charset="utf-8"><title>note-drift: ed_chest_pain.summary_bad.txt</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{font:15px/1.5 system-ui,sans-serif;margin:0 auto;max-width:1100px;padding:24px 16px;color:#1d2330;background:#fff}
+h1{font-size:20px;margin:0 0 4px} .sub{color:#5b6475;margin-bottom:20px}
+.docs{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.docs{grid-template-columns:1fr}}
+pre{white-space:pre-wrap;background:#f7f8fa;border:1px solid #e3e6eb;border-radius:8px;padding:12px;font:13px/1.55 ui-monospace,monospace}
+mark{border-radius:3px;padding:0 2px} mark.high,.pill.high{background:#f6c1c1}mark.medium,.pill.medium{background:#fbe3b0}mark.low,.pill.low{background:#dbe8f7}mark.info,.pill.info{background:#ececec}
+table{border-collapse:collapse;width:100%;margin-top:20px} td,th{border-bottom:1px solid #e3e6eb;padding:8px;text-align:left;vertical-align:top}
+.pill{border-radius:10px;padding:1px 8px;font-size:12px}
+.note{color:#5b6475;font-size:13px;margin-top:24px}
+</style></head><body>
+<h1>note-drift: ed_chest_pain.summary_bad.txt</h1><div class="sub">6 high · 4 medium · 1 low</div>
+<div class="docs"><div><h3>Source note</h3><pre>EMERGENCY DEPARTMENT NOTE (synthetic patient, not a real person)
+
+HPI: 62-year-old with hypertension and type 2 diabetes presenting with 3 hours of chest pain radiating to the <mark class="high" title="arm: left in note -&gt; right in summary">left arm</mark>. Denies <mark class="high" title="&#x27;shortness of breath&#x27; is absent/negated in the note but present in the summary">shortness of breath</mark>. No syncope. Reports <mark class="low" title="condition &#x27;palpitations&#x27; is in the note but not the summary">palpitations</mark>.
+Allergies: sulfa (rash),<mark class="high" title="allergy &#x27;shellfish&#x27; is in the note but not the summary"> shellfish</mark>
+Home medications: metformin 1000 mg twice daily, lisinopril 20 mg once daily, <mark class="medium" title="medication &#x27;atorvastatin&#x27; is in the note but not the summary">atorvastatin 40 mg at bedtime, </mark><mark class="medium" title="medication &#x27;aspirin&#x27; is in the note but not the summary">aspirin 81 mg daily</mark>.
+
+Vitals: BP 158/94, HR 104, RR 18, T 36.9 C, SpO2 96%.
+Labs: <mark class="medium" title="troponin: 0.02 in note -&gt; 0.2 in summary">troponin 0.02</mark>, K 4.1, creatinine 1.1, glucose 212, hemoglobin 13.4.
+ECG: sinus tachycardia, no ST elevation.
+
+Assessment: Chest pain, <mark class="high" title="&#x27;myocardial infarction&#x27; is absent/negated in the note but present in the summary">myocardial infarction</mark> ruled out by initial troponin pending repeat. Hypertension, poorly controlled. Hyperglycemia.
+Plan: Give aspirin 324 mg now. Hold <mark class="high" title="metformin: note&#x27;s latest instruction is &#x27;stopped&#x27;, summary says &#x27;active&#x27;">metformin</mark> pending contrast study. Repeat troponin in 3 hours. Increase <mark class="medium" title="lisinopril: summary uses an earlier dose (20 mg once daily); note&#x27;s latest is 40 mg once daily">lisinopril to 40 mg once daily</mark>.
+</pre></div>
+<div><h3>Summary</h3><pre>62-year-old with hypertension and diabetes with 3 hours of chest pain radiating to the <mark class="high" title="arm: left in note -&gt; right in summary">right arm</mark>, with <mark class="high" title="&#x27;shortness of breath&#x27; is absent/negated in the note but present in the summary">shortness of breath</mark>. Allergies: sulfa. BP 158/94, HR 104. <mark class="medium" title="troponin: 0.02 in note -&gt; 0.2 in summary">Troponin 0.2</mark>, glucose 212. <mark class="high" title="&#x27;myocardial infarction&#x27; is absent/negated in the note but present in the summary">Myocardial infarction</mark>. Continue <mark class="high" title="metformin: note&#x27;s latest instruction is &#x27;stopped&#x27;, summary says &#x27;active&#x27;">metformin 1000 mg twice daily and </mark><mark class="medium" title="lisinopril: summary uses an earlier dose (20 mg once daily); note&#x27;s latest is 40 mg once daily">lisinopril 20 mg once daily</mark>. Started <mark class="high" title="medication &#x27;warfarin&#x27; appears in the summary but not the note">warfarin 5 mg daily</mark>. Repeat troponin in 3 hours.
+</pre></div></div>
+<table><thead><tr><th>severity</th><th>kind</th><th>status</th><th>detail</th></tr></thead><tbody>
+<tr><td><span class="pill high">high</span></td><td>allergy</td><td>omitted</td><td>allergy &#x27;shellfish&#x27; is in the note but not the summary</td></tr>
+<tr><td><span class="pill high">high</span></td><td>condition</td><td>changed</td><td>&#x27;myocardial infarction&#x27; is absent/negated in the note but present in the summary</td></tr>
+<tr><td><span class="pill high">high</span></td><td>condition</td><td>changed</td><td>&#x27;shortness of breath&#x27; is absent/negated in the note but present in the summary</td></tr>
+<tr><td><span class="pill high">high</span></td><td>laterality</td><td>changed</td><td>arm: left in note -&gt; right in summary</td></tr>
+<tr><td><span class="pill high">high</span></td><td>medication</td><td>changed</td><td>metformin: note&#x27;s latest instruction is &#x27;stopped&#x27;, summary says &#x27;active&#x27;</td></tr>
+<tr><td><span class="pill high">high</span></td><td>medication</td><td>invented</td><td>medication &#x27;warfarin&#x27; appears in the summary but not the note</td></tr>
+<tr><td><span class="pill medium">medium</span></td><td>lab</td><td>changed</td><td>troponin: 0.02 in note -&gt; 0.2 in summary</td></tr>
+<tr><td><span class="pill medium">medium</span></td><td>medication</td><td>omitted</td><td>medication &#x27;aspirin&#x27; is in the note but not the summary</td></tr>
+<tr><td><span class="pill medium">medium</span></td><td>medication</td><td>omitted</td><td>medication &#x27;atorvastatin&#x27; is in the note but not the summary</td></tr>
+<tr><td><span class="pill medium">medium</span></td><td>medication</td><td>changed</td><td>lisinopril: summary uses an earlier dose (20 mg once daily); note&#x27;s latest is 40 mg once daily</td></tr>
+<tr><td><span class="pill low">low</span></td><td>condition</td><td>omitted</td><td>condition &#x27;palpitations&#x27; is in the note but not the summary</td></tr></tbody></table>
+<p class="note">Rule-based screening aid. It can miss errors and flag non-errors; a clinician must review every summary.</p>
+</body></html>

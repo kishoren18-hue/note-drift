@@ -1,0 +1,12 @@
+EMERGENCY DEPARTMENT NOTE (synthetic patient, not a real person)
+
+HPI: 62-year-old with hypertension and type 2 diabetes presenting with 3 hours of chest pain radiating to the left arm. Denies shortness of breath. No syncope. Reports palpitations.
+Allergies: sulfa (rash), shellfish
+Home medications: metformin 1000 mg twice daily, lisinopril 20 mg once daily, atorvastatin 40 mg at bedtime, aspirin 81 mg daily.
+
+Vitals: BP 158/94, HR 104, RR 18, T 36.9 C, SpO2 96%.
+Labs: troponin 0.02, K 4.1, creatinine 1.1, glucose 212, hemoglobin 13.4.
+ECG: sinus tachycardia, no ST elevation.
+
+Assessment: Chest pain, myocardial infarction ruled out by initial troponin pending repeat. Hypertension, poorly controlled. Hyperglycemia.
+Plan: Give aspirin 324 mg now. Hold metformin pending contrast study. Repeat troponin in 3 hours. Increase lisinopril to 40 mg once daily.

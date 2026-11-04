@@ -1,0 +1,30 @@
+{
+  "pairs": 3,
+  "results": {
+    "dose_change": {
+      "applied": 3,
+      "detected": 3
+    },
+    "frequency_change": {
+      "applied": 3,
+      "detected": 3
+    },
+    "laterality_flip": {
+      "applied": 3,
+      "detected": 3
+    },
+    "negation_flip": {
+      "applied": 3,
+      "detected": 3
+    },
+    "allergy_drop": {
+      "applied": 3,
+      "detected": 3
+    },
+    "med_invent": {
+      "applied": 3,
+      "detected": 3
+    }
+  },
+  "false_alarms": 0
+}

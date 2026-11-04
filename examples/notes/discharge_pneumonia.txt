@@ -1,0 +1,18 @@
+DISCHARGE SUMMARY (synthetic patient, not a real person)
+
+Admission diagnosis: Community-acquired pneumonia, right lower lobe.
+History: 71-year-old with COPD and atrial fibrillation admitted with fever, cough and shortness of breath. Chest x-ray showed right lower lobe consolidation. No pulmonary embolism on CT.
+Allergies: penicillin (anaphylaxis)
+
+Hospital course: Treated with ceftriaxone and azithromycin, transitioned to oral levofloxacin. Fever resolved by day 2. Oxygen weaned to room air.
+Discharge vitals: BP 128/76, HR 82, T 37.0 C, SpO2 94%.
+Discharge labs: WBC 9.8, creatinine 1.3, potassium 4.4.
+
+Discharge medications:
+levofloxacin 750 mg once daily for 5 more days
+apixaban 5 mg twice daily
+metoprolol 25 mg twice daily
+albuterol 2 puffs every 4 hours as needed for wheezing
+fluticasone 2 puffs twice daily
+
+Follow up with primary care in 1 week. Return for chest pain, worsening shortness of breath or fever.
