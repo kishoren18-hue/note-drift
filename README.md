@@ -24,6 +24,10 @@ AI scribes and summarizers are being rolled into clinics to write handoffs, disc
 
 Summaries are supposed to leave things out, so plain omissions of vitals, labs and negative findings are low or informational. Changed and invented facts are high.
 
+## Web app
+
+There's also a hosted version with a Next.js frontend, a FastAPI backend, Supabase accounts and a Claude-powered **challenge mode**, where Claude secretly plants errors in a summary and you see whether note-drift catches them. See [`web/`](web/README.md) for the architecture, security model and setup.
+
 ## Quick start
 
 ```bash
