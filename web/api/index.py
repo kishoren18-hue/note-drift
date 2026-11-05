@@ -17,8 +17,9 @@ from typing import Literal
 import httpx
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from note_drift import check as drift_check
 from pydantic import BaseModel, Field
+
+from note_drift import check as drift_check
 
 MAX_CHARS = 20_000
 DAILY_AI_LIMIT = 20
