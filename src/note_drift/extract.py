@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 
 from . import lexicon as L
 
-__all__ = ["Fact", "extract"]
+__all__ = ["Fact", "Vocabulary", "extract", "default_vocabulary"]
 
 
 @dataclass
@@ -41,15 +41,63 @@ def _word_re(words) -> re.Pattern:
     return re.compile(r"(?<![\w-])(" + "|".join(alts) + r")(?![\w-])", re.I)
 
 
-_MED_RE = _word_re(L.MEDICATIONS)
-_COND_RE = _word_re(L.CONDITIONS)
 _FREQ = [(norm, re.compile(r"\b(?:" + "|".join(pats) + r")(?!\w)", re.I)) for norm, pats in L.FREQUENCIES.items()]
 _PRE_NEG = re.compile(r"\b(?:" + "|".join(re.escape(c) for c in L.NEGATION_CUES) + r")\b", re.I)
 _POST_NEG = re.compile(r"^\W*(?:\w+\W+){0,2}?(?:resolved|ruled out|is absent|was absent|negative)\b", re.I)
 _DONE = re.compile(r"\b(?:treated with|received|was given|were given|completed|transitioned from)\b", re.I)
 _STOP = re.compile(r"\b(?:stop(?:ped)?|discontinu(?:e|ed)|hold|held|d/c)\b", re.I)
-_LATERAL = re.compile(r"\b(left|right|bilateral|l|r)\s+(" +
-                      "|".join(sorted(map(re.escape, L.BODY_PARTS), key=len, reverse=True)) + r")\b", re.I)
+
+
+class Vocabulary:
+    """Words the extractor recognizes. Extend it for your specialty or institution.
+
+    aliases map alternative names (brand names, abbreviations) to one canonical
+    name, so "Tylenol" in a summary matches "acetaminophen" in the note.
+    """
+
+    def __init__(self, medications=(), conditions=(), allergens=(), body_parts=(), aliases=None):
+        self.aliases = {k.lower(): v.lower() for k, v in (aliases or {}).items()}
+        self.medications = {m.lower() for m in medications} | {
+            a for a, v in self.aliases.items() if v in {m.lower() for m in medications}}
+        self.conditions = {c.lower() for c in conditions}
+        self.allergens = {a.lower() for a in allergens}
+        self.body_parts = {b.lower() for b in body_parts}
+        self.med_re = _word_re(self.medications)
+        self.cond_re = _word_re(self.conditions)
+        self.lateral_re = re.compile(r"\b(left|right|bilateral|l|r)\s+(" + "|".join(
+            sorted(map(re.escape, self.body_parts), key=len, reverse=True)) + r")\b", re.I)
+
+    def canonical(self, name: str) -> str:
+        n = name.lower()
+        return self.aliases.get(n, n)
+
+    def extended(self, medications=(), conditions=(), allergens=(), body_parts=(), aliases=None) -> "Vocabulary":
+        return Vocabulary(self.medications | set(medications), self.conditions | set(conditions),
+                          self.allergens | set(allergens), self.body_parts | set(body_parts),
+                          {**self.aliases, **(aliases or {})})
+
+    @classmethod
+    def from_json(cls, path, base: "Vocabulary | None" = None) -> "Vocabulary":
+        import json
+        from pathlib import Path
+
+        d = json.loads(Path(path).read_text())
+        unknown = set(d) - {"medications", "conditions", "allergens", "body_parts", "aliases"}
+        if unknown:
+            raise ValueError(f"unknown vocabulary keys: {sorted(unknown)}")
+        base = base or default_vocabulary()
+        return base.extended(d.get("medications", ()), d.get("conditions", ()), d.get("allergens", ()),
+                             d.get("body_parts", ()), d.get("aliases"))
+
+
+_DEFAULT_VOCAB = None
+
+
+def default_vocabulary() -> Vocabulary:
+    global _DEFAULT_VOCAB
+    if _DEFAULT_VOCAB is None:
+        _DEFAULT_VOCAB = Vocabulary(L.MEDICATIONS, L.CONDITIONS, L.ALLERGENS, L.BODY_PARTS, L.BRAND_NAMES)
+    return _DEFAULT_VOCAB
 
 _VITALS = {
     "blood pressure": re.compile(r"\b(?:BP|blood pressure)\s*(?:of|:|was|is)?\s*(\d{2,3})\s*/\s*(\d{2,3})", re.I),
@@ -105,13 +153,13 @@ def _allergies(text: str):
     return facts, spans
 
 
-def _medications(text: str, blocked):
+def _medications(text: str, blocked, vocab: "Vocabulary"):
     facts, seen_spans = [], []
-    candidates = [(m.group(1).lower(), m.span()) for m in _MED_RE.finditer(text)]
+    candidates = [(vocab.canonical(m.group(1)), m.span()) for m in vocab.med_re.finditer(text)]
     # unknown drugs written as "<word> <dose>" (e.g. "Zyrtec 10 mg")
     for m in re.finditer(r"\b([A-Za-z][A-Za-z-]{3,})\s+" + _DOSE.pattern, text, re.I):
         name = m.group(1).lower()
-        if name in L.MEDICATIONS or name in L.LAB_NAMES or name in {"dose", "given", "take", "daily", "total"}:
+        if name in vocab.medications or name in L.LAB_NAMES or name in {"dose", "given", "take", "daily", "total"}:
             continue
         candidates.append((name, (m.start(1), m.end(1))))
     for name, span in sorted(candidates, key=lambda c: c[1]):
@@ -124,7 +172,7 @@ def _medications(text: str, blocked):
         s_start, s_end = _sentence_bounds(text, span[0])
         window_end = min(s_end, span[1] + 80)
         tail = text[span[1]:window_end]
-        nxt = _MED_RE.search(tail)  # don't steal the next drug's dose
+        nxt = vocab.med_re.search(tail)  # don't steal the next drug's dose
         if nxt:
             tail = tail[:nxt.start()]
         dose = _DOSE.search(tail)
@@ -185,9 +233,9 @@ def _labs(text: str, blocked):
     return facts
 
 
-def _conditions(text: str, blocked=()):
+def _conditions(text: str, vocab: "Vocabulary", blocked=()):
     facts = []
-    for m in _COND_RE.finditer(text):
+    for m in vocab.cond_re.finditer(text):
         if _overlaps(m.span(), blocked):
             continue  # e.g. "rash" as an allergy reaction
         s_start, s_end = _sentence_bounds(text, m.start())
@@ -199,18 +247,22 @@ def _conditions(text: str, blocked=()):
     return facts
 
 
-def _laterality(text: str):
+def _laterality(text: str, vocab: "Vocabulary"):
     side_map = {"l": "left", "r": "right"}
     facts = []
-    for m in _LATERAL.finditer(text):
+    for m in vocab.lateral_re.finditer(text):
         side = side_map.get(m.group(1).lower(), m.group(1).lower())
         facts.append(Fact("laterality", m.group(2).lower(), {"side": side}, m.span(), m.group(0)))
     return facts
 
 
-def extract(text: str) -> list[Fact]:
+def extract(text: str, vocab: Vocabulary | None = None) -> list[Fact]:
+    vocab = vocab or default_vocabulary()
     allergies, allergy_spans = _allergies(text)
-    meds = _medications(text, allergy_spans)
+    for a in allergies:
+        if a.key != "__none__":
+            a.key = vocab.canonical(a.key)
+    meds = _medications(text, allergy_spans, vocab)
     vitals = _vitals(text)
     labs = _labs(text, [f.span for f in vitals])
-    return allergies + meds + vitals + labs + _conditions(text, allergy_spans) + _laterality(text)
+    return allergies + meds + vitals + labs + _conditions(text, vocab, allergy_spans) + _laterality(text, vocab)

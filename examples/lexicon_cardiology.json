@@ -1,0 +1,6 @@
+{
+  "medications": ["ticagrelor", "sacubitril-valsartan", "dofetilide", "ranolazine"],
+  "conditions": ["nstemi", "stemi", "unstable angina", "aortic stenosis", "hfref"],
+  "body_parts": ["carotid", "femoral artery", "radial artery"],
+  "aliases": {"brilinta": "ticagrelor", "entresto": "sacubitril-valsartan", "tikosyn": "dofetilide", "ranexa": "ranolazine"}
+}

@@ -92,3 +92,35 @@ def test_cli(tmp_path):
     code = main([str(NOTES / "peds_otitis.txt"), str(NOTES / "peds_otitis.summary_bad.txt"), "--html", str(out)])
     assert code == 1 and "<mark" in out.read_text()
     assert main([str(NOTES / "peds_otitis.txt"), str(NOTES / "peds_otitis.summary_good.txt")]) == 0
+
+
+def test_brand_names_match_generics():
+    rep = check("Plan: acetaminophen 500 mg every 6 hours as needed.", "Plan: Tylenol 500 mg every 6 hours as needed.")
+    assert not [f for f in rep.findings if f.severity in ("high", "medium")]
+
+
+def test_custom_lexicon(tmp_path):
+    from note_drift import Vocabulary
+
+    note = "Started ticagrelor 90 mg twice daily."
+    summary = "Started Brilinta 90 mg once daily."
+    # without the lexicon, the brand and generic look like two different drugs
+    statuses = {f.status for f in check(note, summary).findings}
+    assert statuses == {"omitted", "invented"}
+    vocab = Vocabulary.from_json(Path(__file__).resolve().parent.parent / "examples" / "lexicon_cardiology.json")
+    details = [f.detail for f in check(note, summary, vocab).findings]
+    assert any("ticagrelor: frequency twice daily -> once daily" in d for d in details)
+    bad = tmp_path / "bad.json"
+    bad.write_text('{"drugs": ["x"]}')
+    with pytest.raises(ValueError):
+        Vocabulary.from_json(bad)
+
+
+def test_batch_mode(tmp_path):
+    out_csv, html_dir = tmp_path / "r.csv", tmp_path / "html"
+    code = main(["batch", str(NOTES), "--csv", str(out_csv), "--html-dir", str(html_dir)])
+    assert code == 1  # the folder contains deliberately bad summaries
+    rows = out_csv.read_text().splitlines()
+    assert rows[0].startswith("note,summary,worst")
+    assert len(rows) - 1 == len(list(NOTES.glob("*.summary*.txt")))
+    assert len(list(html_dir.glob("*.html"))) == len(rows) - 1

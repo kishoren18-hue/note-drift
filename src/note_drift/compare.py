@@ -200,6 +200,7 @@ def compare_facts(note_facts: list[Fact], summary_facts: list[Fact]) -> list[Fin
     return findings
 
 
-def check(note: str, summary: str) -> DriftReport:
-    nf, sf = extract(note), extract(summary)
+def check(note: str, summary: str, vocab=None) -> DriftReport:
+    """Compare a source note with its summary. Pass a Vocabulary to extend the built-in word lists."""
+    nf, sf = extract(note, vocab), extract(summary, vocab)
     return DriftReport(compare_facts(nf, sf), nf, sf)

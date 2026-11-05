@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "note-drift: detecting fact drift between clinical notes and their summaries"
+abstract: "Rule-based detection of facts dropped, changed or invented when a clinical note is summarized, ranked by patient-safety severity."
+type: software
+authors:
+  - family-names: Nuthalapati
+    given-names: Kishore
+repository-code: "https://github.com/kishoren18-hue/note-drift"
+license: MIT
+version: 0.2.0
+date-released: "2026-11-04"
+keywords:
+  - clinical NLP
+  - summarization
+  - hallucination detection
+  - patient safety

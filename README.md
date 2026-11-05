@@ -51,6 +51,51 @@ for f in report.findings:
     print(f.severity, f.detail)
 ```
 
+## Checking many summaries at once
+
+Name each summary `<note>.summary*.txt` next to its note, then:
+
+```bash
+note-drift batch notes/ --csv results.csv --html-dir reports/
+```
+
+```
+discharge_pneumonia.summary_good.txt  low     H0 M0 L7  condition 'chest pain' is in the note but not the summary
+ed_chest_pain.summary_bad.txt         high    H6 M4 L1  allergy 'shellfish' is in the note but not the summary
+ed_chest_pain.summary_good.txt        info    H0 M0 L0
+peds_otitis.summary_bad.txt           high    H6 M1 L1  allergy to amoxicillin replaced by 'no known allergies'
+peds_otitis.summary_good.txt          low     H0 M0 L1  condition 'cough' is in the note but not the summary
+
+5 pairs, 2 at or above 'high'
+```
+
+This is the mode to use when evaluating a summarization model: one CSV row per summary, plus an HTML report for each one you want to inspect.
+
+## Brand names and custom vocabularies
+
+About 70 common brand names map to their generic names out of the box, so "Tylenol" in a summary matches "acetaminophen" in the note instead of being flagged as a missing drug plus an invented one.
+
+For a specialty or institution, extend the word lists with a JSON file:
+
+```json
+{
+  "medications": ["ticagrelor", "sacubitril-valsartan"],
+  "conditions": ["nstemi", "aortic stenosis"],
+  "body_parts": ["radial artery"],
+  "aliases": {"brilinta": "ticagrelor", "entresto": "sacubitril-valsartan"}
+}
+```
+
+```bash
+note-drift note.txt summary.txt --lexicon examples/lexicon_cardiology.json
+```
+
+```python
+from note_drift import Vocabulary, check
+vocab = Vocabulary.from_json("my_lexicon.json")
+report = check(note_text, summary_text, vocab)
+```
+
 ## Benchmark (synthetic, small)
 
 `benchmarks/run_benchmark.py` takes each faithful summary in `examples/notes/`, injects six kinds of known error (dose change, frequency change, left/right flip, negation flip, dropped allergy, invented drug), and checks whether a new medium/high finding of the right kind appears.
@@ -74,7 +119,7 @@ No model, no API calls, no dependencies. That keeps it auditable and fast enough
 
 ## Limitations
 
-* Rule-based extraction misses phrasings it hasn't seen. The drug list is about 100 common medications plus a fallback for any "<word> <dose> <unit>" pattern; swap in RxNorm for real use.
+* Rule-based extraction misses phrasings it hasn't seen. The drug list is about 100 common medications and 70 brand names, plus a fallback for any "<word> <dose> <unit>" pattern. Use `--lexicon` to extend it, or swap in RxNorm for real use.
 * It checks facts it can extract. It does not judge clinical reasoning, tone or completeness of the plan.
 * Synthetic examples only. Never run real patient data through tools or services that aren't approved for it.
 * **This is a screening aid, not a medical device.** A clinician must review every summary.
@@ -90,6 +135,10 @@ pip install -e ".[dev]"
 pytest -q                         # 16 tests
 python benchmarks/run_benchmark.py
 ```
+
+## Contributing
+
+Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and ideas to start with, [CHANGELOG.md](CHANGELOG.md) for what's new, and [SECURITY.md](SECURITY.md) to report a problem privately. If you use this in research, GitHub's "Cite this repository" button (from [CITATION.cff](CITATION.cff)) gives a ready-made citation.
 
 ## License
 

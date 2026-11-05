@@ -68,6 +68,25 @@ FREQUENCIES = {
     "as needed": [r"as needed", r"p\.?r\.?n\.?"],
 }
 
+# brand or common names -> generic names, so "Tylenol" matches "acetaminophen"
+BRAND_NAMES = {
+    "tylenol": "acetaminophen", "paracetamol": "acetaminophen", "advil": "ibuprofen", "motrin": "ibuprofen",
+    "aleve": "naproxen", "zithromax": "azithromycin", "z-pak": "azithromycin", "augmentin": "amoxicillin-clavulanate",
+    "keflex": "cephalexin", "omnicef": "cefdinir", "lasix": "furosemide", "coumadin": "warfarin",
+    "eliquis": "apixaban", "xarelto": "rivaroxaban", "plavix": "clopidogrel", "lipitor": "atorvastatin",
+    "zocor": "simvastatin", "crestor": "rosuvastatin", "zofran": "ondansetron", "zyrtec": "cetirizine",
+    "claritin": "loratadine", "benadryl": "diphenhydramine", "synthroid": "levothyroxine",
+    "glucophage": "metformin", "norvasc": "amlodipine", "prilosec": "omeprazole", "protonix": "pantoprazole",
+    "pepcid": "famotidine", "zoloft": "sertraline", "prozac": "fluoxetine", "lexapro": "escitalopram",
+    "xanax": "alprazolam", "ativan": "lorazepam", "ambien": "zolpidem", "neurontin": "gabapentin",
+    "flomax": "tamsulosin", "singulair": "montelukast", "ventolin": "albuterol", "proair": "albuterol",
+    "flovent": "fluticasone", "bactrim": "sulfamethoxazole-trimethoprim", "cipro": "ciprofloxacin",
+    "levaquin": "levofloxacin", "toradol": "ketorolac", "narcan": "naloxone", "lovenox": "enoxaparin",
+    "zestril": "lisinopril", "prinivil": "lisinopril", "cozaar": "losartan", "lopressor": "metoprolol",
+    "toprol": "metoprolol", "coreg": "carvedilol", "keppra": "levetiracetam", "lamictal": "lamotrigine",
+    "seroquel": "quetiapine", "ritalin": "methylphenidate", "deltasone": "prednisone", "decadron": "dexamethasone",
+}
+
 NEGATION_CUES = [
     "no", "denies", "denied", "negative for", "without", "not", "ruled out", "rules out",
     "free of", "absence of", "no evidence of", "no signs of", "resolved",
