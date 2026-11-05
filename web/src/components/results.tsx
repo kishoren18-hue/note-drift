@@ -59,7 +59,7 @@ export function Results({
       </div>
 
       {injected.length > 0 && (
-        <Alert tone="neutral" title="Challenge mode: Claude hid errors in this summary">
+        <Alert tone="neutral" title="Challenge mode: the AI hid errors in this summary">
           {revealed ? (
             <ul className="mt-1 list-disc pl-5">
               {injected.map((e) => (
@@ -70,7 +70,7 @@ export function Results({
             <p>
               See whether the findings below caught them, then{" "}
               <button className="font-medium text-accent underline" onClick={() => setRevealed(true)}>
-                reveal what Claude changed
+                reveal what the AI changed
               </button>
               .
             </p>

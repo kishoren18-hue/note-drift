@@ -10,7 +10,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: { default: "note-drift: catch what AI summaries get wrong", template: "%s · note-drift" },
   description:
-    "Paste a clinical note and its summary, or let Claude write one. note-drift flags every fact that was dropped, changed or invented.",
+    "Paste a clinical note and its summary, or let AI write one. note-drift flags every fact that was dropped, changed or invented.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   openGraph: { type: "website", siteName: "note-drift" },
 };

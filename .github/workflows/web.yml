@@ -55,6 +55,6 @@ jobs:
       - name: Apply migration on a Supabase-like stub and run security tests
         run: |
           psql -v ON_ERROR_STOP=1 -q -f supabase/tests/supabase_stub.sql
-          psql -v ON_ERROR_STOP=1 -q -f supabase/migrations/0001_note_drift.sql
+          for f in supabase/migrations/*.sql; do psql -v ON_ERROR_STOP=1 -q -f "$f"; done
           psql -v ON_ERROR_STOP=1 -q -f supabase/tests/rls_test.sql | tee out.txt
           grep -q "RLS TESTS PASSED" out.txt

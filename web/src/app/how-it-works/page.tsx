@@ -42,7 +42,7 @@ export default function HowItWorks() {
         <Card className="overflow-x-auto font-mono text-[13px] leading-6">
           <pre>{`Browser (Next.js 15, React 19, TypeScript, Tailwind)
    │  POST /api/py/check ────────────► FastAPI (Python) ─► note_drift library
-   │  POST /api/py/summarize ─────────► FastAPI ─► Claude API
+   │  POST /api/py/summarize ─────────► FastAPI ─► Gemini or Claude API
    │                                      └─► Supabase RPC: per-user daily quota
    └─ save / list / share reports ────► Supabase Postgres (row-level security)
                                          Supabase Auth (email magic link)`}</pre>

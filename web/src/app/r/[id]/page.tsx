@@ -39,6 +39,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 const SOURCE: Record<string, string> = {
   pasted: "Pasted summary",
+  ai: "Written by AI",
+  "ai-challenge": "AI challenge mode",
   claude: "Written by Claude",
   "claude-challenge": "Claude challenge mode",
 };

@@ -11,7 +11,7 @@ import { getBrowserClient } from "@/lib/supabase/client";
 import { Results } from "./results";
 import { Alert, Button, Card, cx, Input, Label, Textarea } from "./ui";
 
-type Source = "pasted" | "claude" | "claude-challenge";
+type Source = "pasted" | "ai" | "ai-challenge";
 type Health = { ai: boolean; accounts: boolean; model: string } | null;
 
 async function api<T>(path: string, body: unknown, token?: string): Promise<T> {
@@ -86,7 +86,7 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
     try {
       const { data } = (await getBrowserClient()?.auth.getSession()) ?? { data: { session: null } };
       const token = data.session?.access_token;
-      if (!token) throw new Error("Sign in to have Claude write a summary.");
+      if (!token) throw new Error("Sign in to have AI write a summary.");
       const r = await api<{ summary: string; injected: string[]; model: string }>(
         "summarize",
         { note, mode: challenge ? "challenge" : "faithful" },
@@ -95,7 +95,7 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
       setSummary(r.summary);
       setInjected(r.injected);
       setModel(r.model);
-      setSource(challenge ? "claude-challenge" : "claude");
+      setSource(challenge ? "ai-challenge" : "ai");
       await runCheck(note, r.summary);
     } catch (e) {
       setError((e as Error).message);
@@ -140,7 +140,7 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
           {(
             [
               ["paste", "Paste a summary"],
-              ["ai", "Have Claude summarize"],
+              ["ai", "Have AI summarize"],
             ] as const
           ).map(([m, label]) => (
             <button
@@ -220,14 +220,14 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
                   <input type="radio" name="kind" checked={!challenge} onChange={() => setChallenge(false)} className="mt-1" />
                   <span>
                     <b>Faithful summary</b>
-                    <span className="block text-muted">Claude summarizes as accurately as it can. How close does it get?</span>
+                    <span className="block text-muted">The AI summarizes as accurately as it can. How close does it get?</span>
                   </span>
                 </label>
                 <label className={cx("flex flex-1 cursor-pointer gap-3 rounded-lg border p-3", challenge ? "border-accent bg-accent-soft" : "border-line")}>
                   <input type="radio" name="kind" checked={challenge} onChange={() => setChallenge(true)} className="mt-1" />
                   <span>
                     <b>Challenge mode</b>
-                    <span className="block text-muted">Claude secretly plants two errors. Can note-drift catch them?</span>
+                    <span className="block text-muted">The AI secretly plants two errors. Can note-drift catch them?</span>
                   </span>
                 </label>
               </fieldset>
@@ -239,12 +239,12 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
                   <Link href="/login?next=/" className="font-medium text-accent underline">
                     Sign in
                   </Link>{" "}
-                  to use Claude (free, 20 summaries a day). Checking a pasted summary needs no account.
+                  to use AI summaries (free, 20 a day). Checking a pasted summary needs no account.
                 </Alert>
               )}
               {summary && (
                 <div>
-                  <Label htmlFor="ai-summary">Claude&apos;s summary {model && <span className="font-normal text-muted">({model})</span>}</Label>
+                  <Label htmlFor="ai-summary">AI summary {model && <span className="font-normal text-muted">({model})</span>}</Label>
                   <Textarea id="ai-summary" rows={6} value={summary} readOnly />
                 </div>
               )}
@@ -259,10 +259,13 @@ export function Checker({ signedIn }: { signedIn: boolean }) {
             </Button>
           ) : (
             <Button onClick={runAI} disabled={!note.trim() || !signedIn || !!busy || health?.ai === false} loading={busy === "ai" || busy === "check"}>
-              {busy === "ai" ? "Claude is writing…" : challenge ? "Generate a summary with hidden errors" : "Generate and check summary"}
+              {busy === "ai" ? "Writing the summary…" : challenge ? "Generate a summary with hidden errors" : "Generate and check summary"}
             </Button>
           )}
-          <span className="text-xs text-muted">Synthetic notes only. Nothing is stored unless you save the report.</span>
+          <span className="text-xs text-muted">
+            Synthetic notes only. Nothing is stored unless you save the report.
+            {mode === "ai" && " AI summaries use Google's free Gemini tier, where Google may use inputs to improve its models and human reviewers may read them."}
+          </span>
         </div>
       </Card>
 

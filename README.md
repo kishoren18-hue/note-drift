@@ -26,7 +26,7 @@ Summaries are supposed to leave things out, so plain omissions of vitals, labs a
 
 ## Web app
 
-There's also a hosted version with a Next.js frontend, a FastAPI backend, Supabase accounts and a Claude-powered **challenge mode**, where Claude secretly plants errors in a summary and you see whether note-drift catches them. See [`web/`](web/README.md) for the architecture, security model and setup.
+There's also a hosted version with a Next.js frontend, a FastAPI backend, Supabase accounts and an AI **challenge mode** (Gemini or Claude), where the model secretly plants errors in a summary and you see whether note-drift catches them. See [`web/`](web/README.md) for the architecture, security model and setup.
 
 ## Quick start
 

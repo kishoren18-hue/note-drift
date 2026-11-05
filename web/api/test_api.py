@@ -27,8 +27,18 @@ NOTE = (
 
 def test_health_reports_configuration(monkeypatch):
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     r = client.get("/api/py/health")
-    assert r.status_code == 200 and r.json()["ai"] is False
+    assert r.status_code == 200 and r.json()["ai"] is False and r.json()["model"] is None
+
+
+def test_provider_prefers_gemini_unless_forced(monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "g")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "k")
+    monkeypatch.delenv("AI_PROVIDER", raising=False)
+    assert client.get("/api/py/health").json()["provider"] == "gemini"
+    monkeypatch.setenv("AI_PROVIDER", "anthropic")
+    assert client.get("/api/py/health").json()["model"] == api.CLAUDE_MODEL
 
 
 def test_check_finds_errors():
@@ -64,6 +74,7 @@ def test_identifier_screen_ignores_clinical_numbers():
 
 
 def test_summarize_requires_sign_in(monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "g")
     monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
     monkeypatch.setenv("SUPABASE_ANON_KEY", "anon")
     r = client.post("/api/py/summarize", json={"note": NOTE})
@@ -111,6 +122,9 @@ def _fake_supabase(monkeypatch, status=200, payload=True):
 def _fake_claude(monkeypatch, text):
     import anthropic
 
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.delenv("AI_PROVIDER", raising=False)
+
     class Msgs:
         def create(self, **kw):
             assert kw["model"] == api.CLAUDE_MODEL
@@ -145,6 +159,40 @@ def test_summarize_quota_exhausted(monkeypatch):
 
 
 def test_summarize_expired_session(monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "g")
     _fake_supabase(monkeypatch, status=401, payload={"message": "JWT expired"})
     r = client.post("/api/py/summarize", json={"note": NOTE}, headers={"Authorization": "Bearer good"})
     assert r.status_code == 401
+
+
+def _fake_gemini(monkeypatch, text, status=200):
+    monkeypatch.setenv("GEMINI_API_KEY", "g")
+    monkeypatch.delenv("AI_PROVIDER", raising=False)
+    seen = {}
+
+    def post(url, headers, json, timeout):
+        seen.update(url=url, headers=headers, body=json)
+        parts = [{"text": "planning", "thought": True}, {"text": text}]
+        return FakeResp(status, {"candidates": [{"content": {"parts": parts}}]})
+
+    monkeypatch.setattr(api.httpx, "post", post)
+    return seen
+
+
+def test_summarize_with_gemini_challenge(monkeypatch):
+    _fake_supabase(monkeypatch)
+    payload = {"summary": "On cefdinir 300 mg once daily.", "errors": ["frequency changed", "allergy dropped"]}
+    seen = _fake_gemini(monkeypatch, json.dumps(payload))
+    r = client.post("/api/py/summarize", json={"note": NOTE, "mode": "challenge"},
+                    headers={"Authorization": "Bearer good"})
+    assert r.status_code == 200
+    assert r.json()["injected"] == payload["errors"] and r.json()["model"] == api.GEMINI_MODEL
+    assert seen["headers"]["x-goog-api-key"] == "g"
+    assert seen["body"]["generationConfig"]["responseMimeType"] == "application/json"
+
+
+def test_gemini_rate_limit_is_friendly(monkeypatch):
+    _fake_supabase(monkeypatch)
+    _fake_gemini(monkeypatch, "", status=429)
+    r = client.post("/api/py/summarize", json={"note": NOTE}, headers={"Authorization": "Bearer good"})
+    assert r.status_code == 429 and "busy" in r.json()["detail"]

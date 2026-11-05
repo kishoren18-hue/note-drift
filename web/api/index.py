@@ -3,7 +3,10 @@
 Routes
   GET  /api/py/health      liveness + which integrations are configured
   POST /api/py/check       compare a note with a summary (public, no data stored)
-  POST /api/py/summarize   have Claude write a summary of a note (signed-in users, daily quota)
+  POST /api/py/summarize   have an AI model write a summary of a note (signed-in users, daily quota)
+
+The AI provider is Gemini when GEMINI_API_KEY is set (a free Google AI Studio key
+works), otherwise Claude when ANTHROPIC_API_KEY is set. AI_PROVIDER forces one.
 
 Nothing here stores note text. Saving a report is done by the browser straight
 into Supabase, protected by row-level security.
@@ -24,6 +27,8 @@ from note_drift import check as drift_check
 MAX_CHARS = 20_000
 DAILY_AI_LIMIT = 20
 CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "claude-haiku-5-5")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.8-flash")
+GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
 app = FastAPI(
     title="note-drift API",
@@ -82,13 +87,27 @@ def _report_json(rep) -> dict:
 # ---------- routes ----------
 
 
+def ai_provider() -> str | None:
+    """Which AI provider this deployment uses, or None if no key is configured."""
+    forced = os.environ.get("AI_PROVIDER", "").strip().lower()
+    keys = {"gemini": os.environ.get("GEMINI_API_KEY"), "anthropic": os.environ.get("ANTHROPIC_API_KEY")}
+    if forced in keys:
+        return forced if keys[forced] else None
+    return next((p for p, k in keys.items() if k), None)
+
+
+def ai_model() -> str | None:
+    return {"gemini": GEMINI_MODEL, "anthropic": CLAUDE_MODEL}.get(ai_provider() or "")
+
+
 @app.get("/api/py/health")
 def health():
     return {
         "ok": True,
-        "ai": bool(os.environ.get("ANTHROPIC_API_KEY")),
+        "ai": ai_provider() is not None,
+        "provider": ai_provider(),
         "accounts": bool(os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_ANON_KEY")),
-        "model": CLAUDE_MODEL,
+        "model": ai_model(),
     }
 
 
@@ -142,12 +161,9 @@ Respond with JSON only, in this exact shape:
 
 
 def _claude(prompt: str, max_tokens: int = 700) -> str:
-    key = os.environ.get("ANTHROPIC_API_KEY")
-    if not key:
-        raise HTTPException(503, "AI summaries aren't configured on this deployment yet.")
     import anthropic  # imported lazily so /check stays fast
 
-    client = anthropic.Anthropic(api_key=key, timeout=45, max_retries=2)
+    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"], timeout=45, max_retries=2)
     try:
         msg = client.messages.create(
             model=CLAUDE_MODEL, max_tokens=max_tokens, temperature=0.3,
@@ -158,6 +174,40 @@ def _claude(prompt: str, max_tokens: int = 700) -> str:
     except anthropic.APIError as e:
         raise HTTPException(502, f"The AI service returned an error ({type(e).__name__}).") from None
     return "".join(b.text for b in msg.content if getattr(b, "type", "") == "text").strip()
+
+
+def _gemini(prompt: str, json_mode: bool = False) -> str:
+    config: dict = {"temperature": 0.3, "maxOutputTokens": 2048, "thinkingConfig": {"thinkingLevel": "low"}}
+    if json_mode:
+        config["responseMimeType"] = "application/json"
+    try:
+        r = httpx.post(
+            GEMINI_URL.format(model=GEMINI_MODEL),
+            headers={"x-goog-api-key": os.environ["GEMINI_API_KEY"], "Content-Type": "application/json"},
+            json={"contents": [{"role": "user", "parts": [{"text": prompt}]}], "generationConfig": config},
+            timeout=45,
+        )
+    except httpx.HTTPError:
+        raise HTTPException(502, "Couldn't reach the AI service. Try again.") from None
+    if r.status_code == 429:
+        raise HTTPException(429, "The AI service is busy or its free daily limit was reached. Try again later.")
+    if r.status_code != 200:
+        raise HTTPException(502, f"The AI service returned an error (HTTP {r.status_code}).")
+    candidates = r.json().get("candidates") or []
+    parts = (candidates[0].get("content") or {}).get("parts") or [] if candidates else []
+    text = "".join(p.get("text", "") for p in parts if not p.get("thought")).strip()
+    if not text:
+        raise HTTPException(502, "The AI returned an empty response. Try again.")
+    return text
+
+
+def generate(prompt: str, json_mode: bool = False) -> str:
+    provider = ai_provider()
+    if provider == "gemini":
+        return _gemini(prompt, json_mode)
+    if provider == "anthropic":
+        return _claude(prompt)
+    raise HTTPException(503, "AI summaries aren't configured on this deployment yet.")
 
 
 def _parse_challenge(text: str) -> tuple[str, list[str]]:
@@ -181,8 +231,10 @@ async def summarize(body: SummarizeIn, authorization: str | None = Header(defaul
             f"This note seems to contain {', '.join(ids)}. Only synthetic notes can be sent to the AI. "
             "Remove identifiers or use a sample note.",
         )
+    if ai_provider() is None:
+        raise HTTPException(503, "AI summaries aren't configured on this deployment yet.")
     await take_quota(authorization)
     if body.mode == "faithful":
-        return {"summary": _claude(FAITHFUL_PROMPT.format(note=body.note)), "injected": [], "model": CLAUDE_MODEL}
-    summary, errors = _parse_challenge(_claude(CHALLENGE_PROMPT.format(note=body.note)))
-    return {"summary": summary, "injected": errors, "model": CLAUDE_MODEL}
+        return {"summary": generate(FAITHFUL_PROMPT.format(note=body.note)), "injected": [], "model": ai_model()}
+    summary, errors = _parse_challenge(generate(CHALLENGE_PROMPT.format(note=body.note), json_mode=True))
+    return {"summary": summary, "injected": errors, "model": ai_model()}
